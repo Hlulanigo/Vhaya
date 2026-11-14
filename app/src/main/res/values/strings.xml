@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vhaya</string>
+    <string name="role_requester">Requester</string>
+    <string name="role_driver">Driver</string>
+    <string name="role_admin">Admin</string>
+    <string name="tab_ride">Ride</string>
+    <string name="tab_trips">Trips</string>
+    <string name="tab_support">Support</string>
+    <string name="tab_wallet">Wallet</string>
+    <string name="tab_drive">Drive</string>
+    <string name="tab_earnings">Earnings</string>
+    <string name="tab_profile">Profile</string>
+    <string name="where_to_prompt">Where to?</string>
+    <string name="emergency_112">Call 112</string>
+    <string name="osm_attribution">© OpenStreetMap contributors</string>
+    <string name="report_issue_title">Report ride issue</string>
+    <string name="report_issue_cta">Report issue</string>
+    <string name="emergency_alert_contacts">Alert contacts</string>
+    <string name="live_tracking_active">Live trip location sharing active</string>
+    <string name="live_tracking_stop">Stop sharing</string>
+    <string name="privacy_popia_title">Privacy &amp; POPIA</string>
+    <string name="privacy_export_data">Export personal data (JSON)</string>
+    <string name="privacy_delete_request">Request account &amp; data deletion</string>
+    <string name="reconnecting_banner">Connecting to Vhaya · changes queued</string>
+    <string name="notif_action_accept">Accept</string>
+    <string name="notif_action_decline">Decline</string>
+    <string name="notif_action_go_offline">Go offline</string>
+    <string name="notif_driver_online_title">Vhaya Driver · Online</string>
+    <string name="notif_driver_online_body">Listening for nearby ride requests in background</string>
+    <string name="notif_driver_active_body">Active trip sync running</string>
+    <string name="notif_offer_badge">New Request</string>
+</resources>

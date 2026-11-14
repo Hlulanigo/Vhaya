@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="notif_card_border">#283754</color>
+    <color name="notif_text_primary">#F1F5FF</color>
+    <color name="notif_text_secondary">#A2B3D1</color>
+    <color name="notif_primary_btn_bg">#5C93FF</color>
+    <color name="notif_primary_btn_text">#061430</color>
+    <color name="notif_pill_bg">#193268</color>
+    <color name="notif_pill_text">#EAF1FF</color>
+    <color name="notif_fare_text">#34D399</color>
+    <color name="notif_dot_pickup">#5C93FF</color>
+    <color name="notif_dot_dest">#F0A16B</color>
+</resources>
