@@ -166,12 +166,12 @@ fun VhayaAuthScreen(
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .heightIn(min = viewportHeight)
-                .padding(horizontal = 24.dp, vertical = 28.dp)
+                .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
             Column(
                 modifier = Modifier
