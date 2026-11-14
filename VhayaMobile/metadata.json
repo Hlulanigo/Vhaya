@@ -1,0 +1,8 @@
+{
+  "name": "Vhaya",
+  "description": "Vhaya ride-request and driver dispatch app for Polokwane with street-level map home screens, route-based estimates, pickup PIN verification, and operations oversight.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
