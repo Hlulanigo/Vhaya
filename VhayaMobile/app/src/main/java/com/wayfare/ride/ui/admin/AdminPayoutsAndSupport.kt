@@ -1,5 +1,9 @@
 package com.wayfare.ride.ui.admin
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -46,6 +50,7 @@ import com.wayfare.ride.ui.WayfareUiState
 import com.wayfare.ride.ui.WayfareViewModel
 import com.wayfare.ride.ui.components.MonoBadge
 import com.wayfare.ride.ui.components.StatusChip
+import com.wayfare.ride.ui.components.WayfareEmptyState
 import com.wayfare.ride.ui.components.formatShortTime
 import com.wayfare.ride.ui.rider.SupportThreadView
 import com.wayfare.ride.ui.theme.LocalWayfareColors
@@ -94,7 +99,15 @@ fun AdminSupportTab(
         item {
             Text("Support queue", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         }
-        items(uiState.supportCases, key = { it.id }) { ticket ->
+        if (uiState.supportCases.isEmpty()) {
+            item {
+                WayfareEmptyState(
+                    icon = Icons.Filled.SupportAgent,
+                    title = "Queue is clear",
+                    message = "New rider support cases will appear here."
+                )
+            }
+        } else items(uiState.supportCases, key = { it.id }) { ticket ->
             Card(
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
@@ -220,6 +233,16 @@ fun AdminPayoutsTab(
             }
         }
 
+        if (uiState.payoutBatches.isEmpty()) {
+            item {
+                WayfareEmptyState(
+                    icon = Icons.Filled.AccountBalance,
+                    title = "No payout batches yet",
+                    message = "Run a weekly batch to review driver payout totals."
+                )
+            }
+        }
+
         items(uiState.payoutBatches, key = { it.id }) { batch ->
             Surface(
                 shape = RoundedCornerShape(16.dp),
@@ -276,11 +299,29 @@ fun AdminPayoutsTab(
                         fontWeight = FontWeight.Bold
                     )
                     if (eligibleDrivers.isEmpty()) {
-                        Text(
-                            text = "No active non-suspended drivers found on backend.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.padding(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Info,
+                                    contentDescription = null,
+                                    tint = colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "No eligible drivers are available for payout.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     } else {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),

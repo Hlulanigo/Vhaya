@@ -487,7 +487,7 @@ private fun SearchingDriversRadarCard(trip: RideTrip) {
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1500, easing = LinearEasing),
+            animation = tween(durationMillis = 3000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "sweepAngle"
@@ -496,7 +496,7 @@ private fun SearchingDriversRadarCard(trip: RideTrip) {
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1800, easing = LinearEasing),
+            animation = tween(durationMillis = 3200, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "ripplePhase"
@@ -579,7 +579,7 @@ private fun SearchingDriversRadarCard(trip: RideTrip) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Filled.DirectionsCar,
-                            contentDescription = "Searching for drivers",
+                            contentDescription = if (elapsedSeconds < 60) "Searching for drivers" else "No driver has accepted yet",
                             tint = colorScheme.onPrimary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -592,15 +592,15 @@ private fun SearchingDriversRadarCard(trip: RideTrip) {
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Searching for drivers",
+                    text = if (elapsedSeconds < 60) "Searching for drivers" else "No driver has accepted yet",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = if (elapsedSeconds < 25) {
-                        "Matching verified drivers near $shortPickup"
-                    } else {
-                        "Expanding search circle around $shortPickup"
+                    text = when {
+                        elapsedSeconds < 25 -> "Matching verified drivers near $shortPickup"
+                        elapsedSeconds < 60 -> "Expanding the search around $shortPickup"
+                        else -> "You can keep waiting or cancel this request."
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = colorScheme.onSurfaceVariant,

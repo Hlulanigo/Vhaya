@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -60,6 +61,7 @@ import com.wayfare.ride.ui.WayfareUiState
 import com.wayfare.ride.ui.WayfareViewModel
 import com.wayfare.ride.ui.components.MonoBadge
 import com.wayfare.ride.ui.components.StatusChip
+import com.wayfare.ride.ui.components.WayfareEmptyState
 import com.wayfare.ride.ui.components.WayfareConfirmDialog
 import com.wayfare.ride.ui.components.formatShortTime
 import com.wayfare.ride.ui.theme.LocalWayfareColors
@@ -132,7 +134,11 @@ fun AdminOverviewTab(
 
         if (uiState.activityLogs.isEmpty()) {
             item {
-                Text("Recent platform events appear here.", style = MaterialTheme.typography.bodySmall, color = colorScheme.onSurfaceVariant)
+                WayfareEmptyState(
+                    icon = Icons.Filled.History,
+                    title = "No recent activity",
+                    message = "Platform events will appear here as rides and reviews change."
+                )
             }
         } else {
             items(uiState.activityLogs.take(6), key = { it.id }) { log ->
@@ -174,7 +180,19 @@ fun AdminOverviewTab(
             )
         }
 
-        items(filteredUsers, key = { it.userId }) { user ->
+        if (filteredUsers.isEmpty()) {
+            item {
+                WayfareEmptyState(
+                    icon = Icons.Filled.Person,
+                    title = if (userSearch.isBlank()) "No accounts yet" else "No matching accounts",
+                    message = if (userSearch.isBlank()) {
+                        "Accounts will appear here when people join Vhaya."
+                    } else {
+                        "Try a different name or email address."
+                    }
+                )
+            }
+        } else items(filteredUsers, key = { it.userId }) { user ->
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = colorScheme.surface),

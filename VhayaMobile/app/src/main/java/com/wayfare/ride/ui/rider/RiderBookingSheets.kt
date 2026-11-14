@@ -86,6 +86,7 @@ import com.wayfare.ride.domain.SavedDestination
 import com.wayfare.ride.ui.BookingDraft
 import com.wayfare.ride.ui.WayfareUiState
 import com.wayfare.ride.ui.components.MonoBadge
+import com.wayfare.ride.ui.components.WayfareEmptyState
 import com.wayfare.ride.ui.components.tactilePressScale
 import com.wayfare.ride.ui.theme.LocalWayfareColors
 import com.wayfare.ride.ui.theme.WayfareMonoFamily
@@ -518,6 +519,52 @@ fun SearchDestinationSheet(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
 
+            if (
+                uiState.placeSearchError != null &&
+                !uiState.searchingPlaces &&
+                query.trim().length >= 3
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, colorScheme.outlineVariant),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = null,
+                            tint = colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Online search unavailable",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Retry or choose a pickup pin on the map.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colorScheme.onSurfaceVariant
+                            )
+                        }
+                        androidx.compose.material3.TextButton(
+                            onClick = { onQueryChange(query) }
+                        ) {
+                            Text("Retry")
+                        }
+                    }
+                }
+            }
+
             Spacer(Modifier.height(8.dp))
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f, fill = false)) {
@@ -572,7 +619,7 @@ fun SearchDestinationSheet(
                             onToggleSave = { onSavePlace(fullLabel, hub.coordinates) }
                         )
                     }
-                    if (uiState.placeSuggestions.isNotEmpty()) {
+                    if (uiState.placeSearchError == null && uiState.placeSuggestions.isNotEmpty()) {
                         items(uiState.placeSuggestions, key = { "osm-${it.id}" }) { place ->
                             val alreadySaved = uiState.savedDestinations.any { it.label == place.label }
                             val subtitle = place.distanceMeters?.let { m ->
@@ -586,13 +633,17 @@ fun SearchDestinationSheet(
                                 onToggleSave = { onSavePlace(place.label, place.coordinates) }
                             )
                         }
-                    } else if (!uiState.searchingPlaces && matchingHubs.isEmpty()) {
+                    } else if (
+                        !uiState.searchingPlaces &&
+                        uiState.placeSearchError == null &&
+                        matchingHubs.isEmpty()
+                    ) {
                         item {
-                            Text(
-                                text = "No matching places found. Try a broader address or tap Pin on map.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+                            WayfareEmptyState(
+                                icon = Icons.Filled.Search,
+                                title = "No matching places",
+                                message = "Try a broader address or tap Pin on map.",
+                                modifier = Modifier.padding(vertical = 8.dp)
                             )
                         }
                     }

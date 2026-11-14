@@ -21,8 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,6 +57,7 @@ import com.wayfare.ride.ui.WayfareViewModel
 import com.wayfare.ride.ui.components.MonoBadge
 import com.wayfare.ride.ui.components.OsmRouteMiniPreview
 import com.wayfare.ride.ui.components.StatusChip
+import com.wayfare.ride.ui.components.WayfareEmptyState
 import com.wayfare.ride.ui.components.formatShortTime
 import com.wayfare.ride.ui.theme.LocalWayfareColors
 import com.wayfare.ride.ui.theme.WayfareMonoFamily
@@ -95,17 +98,11 @@ fun RiderTripsTab(
 
         if (uiState.riderHistoryTrips.isEmpty()) {
             item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Completed and cancelled rides appear here.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(18.dp)
-                    )
-                }
+                WayfareEmptyState(
+                    icon = Icons.Filled.History,
+                    title = "No rides yet",
+                    message = "Completed and cancelled rides will appear here."
+                )
             }
         } else {
             items(uiState.riderHistoryTrips, key = { it.id }) { trip ->
@@ -341,28 +338,11 @@ fun RiderSupportTab(
         }
         if (uiState.supportCases.isEmpty()) {
             item {
-                Card(
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
-                    border = BorderStroke(1.dp, colorScheme.outlineVariant),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(18.dp)
-                    ) {
-                        Text(
-                            text = "No support tickets yet",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "Need help with a trip or fare? Open any active ride or past trip receipt to contact Vhaya Support.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                WayfareEmptyState(
+                    icon = Icons.Filled.SupportAgent,
+                    title = "No support cases yet",
+                    message = "Open an active ride or past receipt if you need help."
+                )
             }
         }
         items(uiState.supportCases, key = { it.id }) { ticket ->

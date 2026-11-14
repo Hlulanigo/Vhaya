@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GpsFixed
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -92,6 +94,7 @@ fun RiderHomeScreen(
     val activeTrip = uiState.riderActiveTrip
     val draft = uiState.booking
     var mapCenterCoords by remember { mutableStateOf(draft.pickupCoords) }
+    var locationPermissionDenied by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
 
@@ -101,12 +104,13 @@ fun RiderHomeScreen(
         val granted = grants[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
             grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         if (granted) {
+            locationPermissionDenied = false
             val coords = resolveDeviceOrFallbackLocation(context)
             viewModel.resolvePinLocation(coords, forPickup = true, fromGps = true)
             onShowMessage("Resolving GPS pickup address...")
         } else {
+            locationPermissionDenied = true
             viewModel.setPickupPoint("Current map area", LaunchPolicy.DEFAULT_MAP_CENTER, fromGps = false)
-            onShowMessage("Location permission denied · pan map or search pickup")
         }
     }
 
@@ -114,6 +118,7 @@ fun RiderHomeScreen(
         val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         if (fine || coarse) {
+            locationPermissionDenied = false
             val coords = resolveDeviceOrFallbackLocation(context)
             viewModel.resolvePinLocation(coords, forPickup = true, fromGps = true)
             onShowMessage("Updating pickup from GPS...")
@@ -171,7 +176,7 @@ fun RiderHomeScreen(
                     viewModel.previewPinLocation(coords)
                 }
             },
-            controlsTopOffsetDp = 114,
+            controlsTopOffsetDp = if (locationPermissionDenied && activeTrip == null) 202 else 114,
             bottomContentPaddingDp = when {
                 activeTrip != null -> 300
                 draft.step == RiderBookingStep.HOME_COMPACT -> 225
@@ -294,6 +299,56 @@ fun RiderHomeScreen(
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(20.dp)
                         )
+                    }
+                }
+            }
+
+            AnimatedVisibility(
+                visible = locationPermissionDenied && activeTrip == null,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.97f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    shadowElevation = 3.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(start = 12.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.LocationOff,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Location access is off",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Search or pin your pickup on the map.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        TextButton(
+                            onClick = {
+                                locationPermissionDenied = false
+                                viewModel.openSearchSheet(forPickup = true)
+                            }
+                        ) {
+                            Text("Set pickup")
+                        }
                     }
                 }
             }

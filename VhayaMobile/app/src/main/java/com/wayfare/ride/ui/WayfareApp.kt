@@ -39,8 +39,10 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -96,6 +98,20 @@ fun WayfareApp(viewModel: WayfareViewModel) {
                 }.onFailure {
                     snackbarHostState.showSnackbar("Open checkout link in browser: $url")
                 }
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.syncError, uiState.isRefreshing) {
+        if (uiState.syncError != null && !uiState.isRefreshing) {
+            val result = snackbarHostState.showSnackbar(
+                message = "Couldn't refresh right now. Check your connection and try again.",
+                actionLabel = "Retry",
+                withDismissAction = true,
+                duration = SnackbarDuration.Long
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.retrySync()
             }
         }
     }

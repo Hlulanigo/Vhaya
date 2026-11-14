@@ -76,6 +76,7 @@ import com.wayfare.ride.ui.WayfareUiState
 import com.wayfare.ride.ui.WayfareViewModel
 import com.wayfare.ride.ui.components.formatShortTime
 import com.wayfare.ride.ui.components.tactilePressScale
+import com.wayfare.ride.ui.components.WayfareEmptyState
 import com.wayfare.ride.ui.theme.LocalWayfareColors
 import com.wayfare.ride.ui.theme.WayfareMonoFamily
 import java.text.NumberFormat
@@ -385,43 +386,16 @@ fun RiderWalletTab(
 
         if (filteredTransactions.isEmpty()) {
             item {
-                Card(
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
-                    border = BorderStroke(1.dp, colorScheme.outlineVariant),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth().padding(22.dp)
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = colorScheme.surfaceVariant,
-                            modifier = Modifier.size(48.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Filled.AccountBalance,
-                                    contentDescription = null,
-                                    tint = colorScheme.primary,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-                        Text(
-                            text = if (uiState.walletTransactions.isEmpty()) "No wallet activity yet" else "No matching entries",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Top up your Vhaya Pay account with Paystack above to pay for rides seamlessly without re-entering card details.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                WayfareEmptyState(
+                    icon = Icons.Filled.AccountBalance,
+                    title = if (uiState.walletTransactions.isEmpty()) "No wallet activity yet" else "No matching entries",
+                    message = if (uiState.walletTransactions.isEmpty()) {
+                        "Top up your wallet or complete a ride to see transactions here."
+                    } else {
+                        "Choose another filter to see your wallet activity."
+                    },
+                    modifier = Modifier.testTag("wallet_empty_state")
+                )
             }
         }
 

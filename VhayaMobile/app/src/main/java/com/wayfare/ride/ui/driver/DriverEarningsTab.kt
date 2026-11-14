@@ -44,6 +44,7 @@ import com.wayfare.ride.ui.WayfareUiState
 import com.wayfare.ride.ui.WayfareViewModel
 import com.wayfare.ride.ui.components.MonoBadge
 import com.wayfare.ride.ui.components.StatusChip
+import com.wayfare.ride.ui.components.WayfareEmptyState
 import com.wayfare.ride.ui.components.formatShortTime
 import com.wayfare.ride.ui.components.tactilePressScale
 import com.wayfare.ride.ui.theme.LocalWayfareColors
@@ -370,18 +371,11 @@ fun DriverEarningsTab(
             }
         } else if (completed.isEmpty()) {
             item {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Completed trips will appear here immediately with fare and settlement breakdown.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
+                WayfareEmptyState(
+                    icon = Icons.Filled.AccountBalance,
+                    title = "No trip earnings yet",
+                    message = "Completed rides and their fare breakdown will appear here."
+                )
             }
         } else {
             items(completed, key = { it.id }) { trip ->
