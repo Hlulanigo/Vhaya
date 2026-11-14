@@ -51,6 +51,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.io.ByteArrayOutputStream
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 
 class WayfareRepository(
     private val context: Context,
@@ -99,6 +100,7 @@ class WayfareRepository(
 
     private val _searchingPlaces = MutableStateFlow(false)
     val searchingPlaces: StateFlow<Boolean> = _searchingPlaces.asStateFlow()
+    private val placeSearchGeneration = AtomicLong(0L)
 
     val trips: Flow<List<RideTrip>> = tripDao.observeAll().map { list -> list.map { it.toDomain() } }
     val savedDestinations: Flow<List<SavedDestination>> = savedDao.observeAll().map { list -> list.map { it.toDomain() } }
@@ -468,28 +470,43 @@ class WayfareRepository(
 
     // Places & Routing
     suspend fun searchPlaces(query: String, proximity: RideCoordinates?): Result<List<PlaceSearchSuggestion>> {
+        val requestId = placeSearchGeneration.incrementAndGet()
         val clean = query.trim()
         if (clean.length < 2) {
-            _placeSuggestions.value = emptyList()
-            _searchingPlaces.value = false
+            if (requestId == placeSearchGeneration.get()) {
+                _placeSuggestions.value = emptyList()
+                _searchingPlaces.value = false
+            }
             return Result.success(emptyList())
         }
         val apiUrl = _apiBaseUrl.value.trim().trimEnd('/')
         if (apiUrl.isBlank()) {
+            if (requestId == placeSearchGeneration.get()) {
+                _placeSuggestions.value = emptyList()
+                _searchingPlaces.value = false
+            }
             return Result.failure(IllegalStateException("Place search is temporarily unavailable. Please try again shortly."))
         }
-        _searchingPlaces.value = true
+        if (requestId == placeSearchGeneration.get()) {
+            _placeSuggestions.value = emptyList()
+            _searchingPlaces.value = true
+        }
         return try {
             val token = currentSessionOrNull()?.idToken
             val res = apiClient.searchPlaces(apiUrl, token, clean, proximity)
-            res.onSuccess { list -> _placeSuggestions.value = list }
+            if (requestId == placeSearchGeneration.get()) {
+                res.onSuccess { list -> _placeSuggestions.value = list }
+            }
             res
         } finally {
-            _searchingPlaces.value = false
+            if (requestId == placeSearchGeneration.get()) {
+                _searchingPlaces.value = false
+            }
         }
     }
 
     fun clearPlaceSuggestions() {
+        placeSearchGeneration.incrementAndGet()
         _placeSuggestions.value = emptyList()
         _searchingPlaces.value = false
     }

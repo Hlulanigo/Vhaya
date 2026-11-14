@@ -408,6 +408,7 @@ fun SearchDestinationSheet(
     val wayfareColors = LocalWayfareColors.current
     var editingPickup by remember(draft.pickingForPickup) { mutableStateOf(draft.pickingForPickup) }
     var query by remember { mutableStateOf("") }
+    var isDebouncingSearch by remember { mutableStateOf(false) }
     val matchingHubs = remember(query) {
         val q = query.trim().lowercase()
         if (q.length < 3) emptyList()
@@ -417,11 +418,14 @@ fun SearchDestinationSheet(
     }
 
     LaunchedEffect(query) {
+        onQueryChange("")
         if (query.trim().length >= 3) {
+            isDebouncingSearch = true
             delay(280L)
             onQueryChange(query)
+            isDebouncingSearch = false
         } else {
-            onQueryChange("")
+            isDebouncingSearch = false
         }
     }
 
@@ -514,7 +518,7 @@ fun SearchDestinationSheet(
                 }
             }
 
-            if (uiState.searchingPlaces) {
+            if (uiState.searchingPlaces || isDebouncingSearch) {
                 Spacer(Modifier.height(6.dp))
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
@@ -619,7 +623,11 @@ fun SearchDestinationSheet(
                             onToggleSave = { onSavePlace(fullLabel, hub.coordinates) }
                         )
                     }
-                    if (uiState.placeSearchError == null && uiState.placeSuggestions.isNotEmpty()) {
+                    if (
+                        uiState.placeSearchError == null &&
+                        !uiState.searchingPlaces &&
+                        uiState.placeSuggestions.isNotEmpty()
+                    ) {
                         items(uiState.placeSuggestions, key = { "osm-${it.id}" }) { place ->
                             val alreadySaved = uiState.savedDestinations.any { it.label == place.label }
                             val subtitle = place.distanceMeters?.let { m ->
@@ -635,6 +643,7 @@ fun SearchDestinationSheet(
                         }
                     } else if (
                         !uiState.searchingPlaces &&
+                        !isDebouncingSearch &&
                         uiState.placeSearchError == null &&
                         matchingHubs.isEmpty()
                     ) {

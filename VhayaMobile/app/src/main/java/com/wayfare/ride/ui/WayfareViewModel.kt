@@ -269,6 +269,8 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
 
     private var observedActiveRiderTripId: String? = null
     private var pinPreviewJob: Job? = null
+    private var placeSearchJob: Job? = null
+    private var placeSearchRequestId = 0L
     private var hasCompletedInitialSyncForUserId: String? = null
     private val expiringTripIds = mutableSetOf<String>()
 
@@ -699,7 +701,6 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
                 .onFailure { err ->
                     val msg = friendlyApiErrorMessage(err, "Refresh failed")
                     localNav.update { it.copy(isRefreshing = false, syncError = msg) }
-                    toast(msg)
                 }
         }
     }
@@ -854,15 +855,32 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
 
     // Requester Booking Actions
     fun searchPlaces(query: String) {
+        placeSearchJob?.cancel()
+        val requestId = ++placeSearchRequestId
+        repository.clearPlaceSuggestions()
         localNav.update { it.copy(placeSearchError = null) }
-        viewModelScope.launch {
-            repository.searchPlaces(query, localNav.value.booking.pickupCoords)
-                .onSuccess { localNav.update { it.copy(placeSearchError = null) } }
-                .onFailure { err ->
-                    val msg = friendlyApiErrorMessage(err, "Could not search places. Check your connection.")
-                    localNav.update { it.copy(placeSearchError = msg) }
-                }
+        if (query.trim().length < 2) {
+            placeSearchJob = null
+            return
         }
+
+        val proximity = localNav.value.booking.pickupCoords
+        placeSearchJob = viewModelScope.launch {
+            val result = repository.searchPlaces(query, proximity)
+            if (requestId != placeSearchRequestId) return@launch
+            result.onFailure { err ->
+                val msg = friendlyApiErrorMessage(err, "Could not search places. Check your connection.")
+                localNav.update { it.copy(placeSearchError = msg) }
+            }
+        }
+    }
+
+    private fun cancelPlaceSearch() {
+        placeSearchRequestId += 1L
+        placeSearchJob?.cancel()
+        placeSearchJob = null
+        repository.clearPlaceSuggestions()
+        localNav.update { it.copy(placeSearchError = null) }
     }
 
     fun clearPlaceSearchError() {
@@ -870,7 +888,7 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
     }
 
     fun openSearchSheet(forPickup: Boolean = false) {
-        repository.clearPlaceSuggestions()
+        cancelPlaceSearch()
         localNav.update {
             it.copy(
                 placeSearchError = null,
@@ -880,6 +898,7 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
     }
 
     fun openMapPinPicker(forPickup: Boolean) {
+        cancelPlaceSearch()
         pinPreviewJob?.cancel()
         localNav.update {
             it.copy(
@@ -930,7 +949,7 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
 
     fun backToCompactHome() {
         pinPreviewJob?.cancel()
-        repository.clearPlaceSuggestions()
+        cancelPlaceSearch()
         localNav.update {
             it.copy(
                 booking = BookingDraft(
@@ -944,6 +963,9 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
     }
 
     fun stepBackInBooking() {
+        if (localNav.value.booking.step == RiderBookingStep.SEARCH_DESTINATION) {
+            cancelPlaceSearch()
+        }
         pinPreviewJob?.cancel()
         localNav.update { state ->
             val prev = when (state.booking.step) {
@@ -985,6 +1007,9 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
     }
 
     fun setPickupPoint(label: String, coords: RideCoordinates, fromGps: Boolean = false) {
+        if (localNav.value.booking.step == RiderBookingStep.SEARCH_DESTINATION) {
+            cancelPlaceSearch()
+        }
         localNav.update { state ->
             val destCoords = state.booking.destinationCoords
             val nextStep = if (state.booking.step == RiderBookingStep.MAP_PIN_PICKER) {
@@ -1012,7 +1037,7 @@ class WayfareViewModel(private val repository: WayfareRepository) : ViewModel() 
     }
 
     fun selectDestination(label: String, coords: RideCoordinates) {
-        repository.clearPlaceSuggestions()
+        cancelPlaceSearch()
         val pickupLabel = localNav.value.booking.pickupLabel
         val pickupCoords = localNav.value.booking.pickupCoords
         localNav.update { state ->
